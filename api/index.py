@@ -70,7 +70,7 @@ def call_chatgpt_api(message):
     prompt = system_prompt + message
 
     # Truncate messages to fit within the token limit
-    max_tokens = 2048 - len(prompt)
+    max_tokens = 1024 - len(prompt)
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": message[:max_tokens]},
