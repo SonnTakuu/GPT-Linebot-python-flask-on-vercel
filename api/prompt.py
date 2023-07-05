@@ -23,7 +23,7 @@ class Prompt:
     def adjust_prompt_length(self, new_msg):
         if len(self.msg_list) >= MSG_LIST_LIMIT:
             self.msg_list.pop(0)
-        while self.get_total_tokens() > 3584:
+        while self.get_total_tokens() > 2000:
             self.msg_list.pop(0)
 
     def get_total_tokens(self):
