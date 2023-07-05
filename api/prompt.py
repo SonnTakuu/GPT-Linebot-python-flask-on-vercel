@@ -1,13 +1,6 @@
 import os
 
-chat_language = os.getenv("INIT_LANGUAGE", default="jp")
-
 MSG_LIST_LIMIT = int(os.getenv("MSG_LIST_LIMIT", default=20))
-LANGUAGE_TABLE = {
-    "jp": "こんにちは！",
-    "en": "Hello!"
-}
-
 
 class Prompt:
     def __init__(self):
@@ -22,9 +15,9 @@ class Prompt:
         
     def adjust_prompt_length(self, new_msg):
         if len(self.msg_list) >= MSG_LIST_LIMIT:
-            self.msg_list.pop(0)
+            self.msg_list.pop(1)
         while self.get_total_tokens() > 2000:
-            self.msg_list.pop(0)
+            self.msg_list.pop(1)
 
     def get_total_tokens(self):
         return sum(len(msg.split()) for msg in self.msg_list)
