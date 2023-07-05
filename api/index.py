@@ -76,7 +76,7 @@ def call_chatgpt_api(message):
             {"role": "user", "content": message},
         ],
         temperature=0.7,
-        max_tokens=100,
+        max_tokens=4096,
     )
     return response
 
