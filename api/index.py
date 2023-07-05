@@ -71,15 +71,14 @@ def call_chatgpt_api(message):
 
     response = openai.Completion.create(
         model="gpt-3.5-turbo",
-        prompt=message,
+        prompt=prompt,
         max_tokens=50,
         temperature=0.7,
         n=1,
         stop=None,
         temperature=0.8,
         max_tokens=100,
-)
-
+    )
     return response
 
 def extract_reply_from_response(response):
