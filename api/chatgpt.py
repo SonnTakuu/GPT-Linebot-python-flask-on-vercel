@@ -17,16 +17,9 @@ class ChatGPT:
                         "in a friendly way like a friend. Also, use a lot of emojis when you talk.\nUser: "
         prompt = system_prompt + message
 
-        # Truncate messages to fit within the token limit
-        max_tokens = 4097 - len(prompt)
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": message[:max_tokens]},
-        ]
-
         response = openai.Completion.create(
             model=self.model,
-            messages=messages,
+            prompt=prompt,
             temperature=0.7,
             max_tokens=100,
         )
@@ -37,7 +30,7 @@ class ChatGPT:
 def extract_reply_from_response(response):
     choices = response['choices']
     if len(choices) > 0:
-        reply = choices[0]['message']['content']
+        reply = choices[0]['text']
         return reply.strip()
     else:
         return ""
