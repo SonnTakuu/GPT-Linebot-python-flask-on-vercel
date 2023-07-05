@@ -84,10 +84,12 @@ def call_chatgpt_api(message):
 
 def extract_reply_from_response(response):
     choices = response['choices']
-    if choices and len(choices) > 0:
-        reply = choices[0]['text'].strip()
-        return reply
-    return ""
+    if len(choices) > 0:
+        reply = choices[0]['message']['content']
+        return reply.strip()
+    else:
+        return ""
+
 
 
 if __name__ == "__main__":
