@@ -55,12 +55,39 @@ def handle_message(event):
         return
 
     if working_status:
-        chatgpt.add_msg(f"HUMAN:{event.message.text}?\n")
-        reply_msg = chatgpt.get_response().replace("デジタク:", "", 1)
-        chatgpt.add_msg(f"デジタク:{reply_msg}\n")
+        response = call_chatgpt_api(event.message.text)
+        reply_msg = extract_reply_from_response(response)
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text=reply_msg))
+
+def call_chatgpt_api(message):
+    import os
+    import openai
+
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    system_prompt = "System: Your name is デジタク[In English 'Digitaq']. Your first-person pronoun is “俺”. You are a friendly friend who is good at programming. Your hobbies are programming, flying drones, and making friends. You have only been in Japan for a year, but you want to become friends with Japanese people!Please stop using polite language. Talk to me in a friendly way like a friend. Also, use a lot of emojis when you talk.\nUser: "  # Define your system prompt here
+    prompt = system_prompt + message
+
+    response = openai.Completion.create(
+        model="gpt-3.5-turbo",
+        prompt=message,
+        max_tokens=50,
+        temperature=0.7,
+        n=1,
+        stop=None,
+        temperature=0.8,
+        max_tokens=100,
+)
+
+    return response
+
+def extract_reply_from_response(response):
+    choices = response['choices']
+    if choices and len(choices) > 0:
+        reply = choices[0]['text'].strip()
+        return reply
+    return ""
 
 
 if __name__ == "__main__":
