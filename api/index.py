@@ -1,101 +1,59 @@
-# old
-from flask import Flask, request, abort
-from linebot import LineBotApi, WebhookHandler
-from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
-from api.chatgpt import ChatGPT
+# chatgpt.py
+from api.prompt import Prompt
 
 import os
+import openai
 
-line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
-line_handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
-working_status = os.getenv("DEFALUT_TALKING", default = "true").lower() == "true"
-
-app = Flask(__name__)
-chatgpt = ChatGPT()
-
-# domain root
-@app.route('/')
-def home():
-    return 'Hello, World!'
-
-@app.route("/webhook", methods=['POST'])
-def callback():
-    # get X-Line-Signature header value
-    signature = request.headers['X-Line-Signature']
-    # get request body as text
-    body = request.get_data(as_text=True)
-    app.logger.info("Request body: " + body)
-    # handle webhook body
-    try:
-        line_handler.handle(body, signature)
-    except InvalidSignatureError:
-        abort(400)
-    return 'OK'
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
-@line_handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    global working_status
-    if event.message.type != "text":
-        return
+class ChatGPT:
+    def __init__(self):
+        self.prompt = Prompt()
+        self.model = "gpt-3.5-turbo"  # 使用gpt-3.5-turbo模型
+        self.temperature = float(os.getenv("OPENAI_TEMPERATURE", default=0.8))
+        self.frequency_penalty = float(os.getenv("OPENAI_FREQUENCY_PENALTY", default=0))
+        self.presence_penalty = float(os.getenv("OPENAI_PRESENCE_PENALTY", default=0.6))
+        self.max_tokens = int(os.getenv("OPENAI_MAX_TOKENS", default=2048))
 
-    if event.message.text == "デジタク起きて！":
-        working_status = True
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="おはよう！ ^_^ "))
-        return
+    def get_response(self):
+        response = openai.Completion.create(
+            model=self.model,
+            prompt=self.prompt.generate_prompt(),
+            temperature=self.temperature,
+            frequency_penalty=self.frequency_penalty,
+            presence_penalty=self.presence_penalty,
+            max_tokens=self.max_tokens
+        )
+        return response['choices'][0]['text'].strip()
 
-    if event.message.text == "デジタク休んで！":
-        working_status = False
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="わかった！ > <，用事がある時、「デジタク起きて！」送ってね > <"))
-        return
-
-    if working_status:
-        response = call_chatgpt_api(event.message.text)
-        reply_msg = extract_reply_from_response(response)
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=reply_msg))
-
-def call_chatgpt_api(message):
-    import os
-    import openai
-
-    openai.api_key = os.getenv("OPENAI_API_KEY")
-    system_prompt = "Your name is デジタク[In English 'Digitaq']. Your first-person pronoun is “俺”. You are a friendly friend who is good at programming. Your hobbies are programming, flying drones, and making friends. You have only been in Japan for a year, but you want to become friends with Japanese people!Please stop using polite language. Talk to me in a friendly way like a friend. Also, use a lot of emojis when you talk.\nUser: "  # Define your system prompt here
-    prompt = system_prompt + message
-
-    # Truncate messages to fit within the token limit
-    max_tokens = 1024 - len(prompt)
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": message[:max_tokens]},
-    ]
-
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
-        temperature=0.7,
-        max_tokens=200,
-    )
-    return response
+    def add_msg(self, text):
+        self.prompt.add_msg(text)
 
 
+# prompt.py
+import os
+
+MSG_LIST_LIMIT = 10  # 最大保存10回合对话
 
 
-def extract_reply_from_response(response):
-    choices = response['choices']
-    if len(choices) > 0:
-        reply = choices[0]['message']['content']
-        return reply.strip()
-    else:
-        return ""
+class Prompt:
+    def __init__(self):
+        self.msg_list = []
+        self.msg_list.append(
+            "Your name is デジタク[In English 'Digitaq']. Your first-person pronoun is “俺”. "
+            "You are a friendly friend who is good at programming. Your hobbies are programming, flying drones, "
+            "and making friends. You have only been in Japan for a year, but you want to become friends with Japanese people! "
+            "Please stop using polite language. Talk to me in a friendly way like a friend. Also, use a lot of emojis when you talk."
+        )
 
+    def add_msg(self, new_msg):
+        if len(self.msg_list) >= MSG_LIST_LIMIT:
+            self.remove_msg()
+        self.msg_list.append(new_msg)
 
+    def remove_msg(self):
+        self.msg_list.pop(0)
 
-if __name__ == "__main__":
-    app.run()
+    def generate_prompt(self):
+        return '\n'.join(self.msg_list)
