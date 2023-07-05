@@ -2,7 +2,7 @@ import os
 
 chat_language = os.getenv("INIT_LANGUAGE", default = "jp")
 
-MSG_LIST_LIMIT = int(os.getenv("MSG_LIST_LIMIT", default = 20))
+MSG_LIST_LIMIT = int(os.getenv("MSG_LIST_LIMIT", default = 5))
 LANGUAGE_TABLE = {
   "jp": "こんにちは！",
   "en": "Hello!"
