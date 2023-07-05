@@ -18,12 +18,9 @@ class Prompt:
 
     def add_msg(self, new_msg):
         self.msg_list.append(new_msg)
-        self.adjust_prompt_length()
-
-    def adjust_prompt_length(self):
         while self.get_total_tokens() > self.max_tokens:
             self.msg_list.pop(0)
-
+        
     def get_total_tokens(self):
         return sum(len(msg.split()) for msg in self.msg_list)
 
