@@ -18,10 +18,12 @@ class Prompt:
 
     def add_msg(self, new_msg):
         tokens = len(new_msg.split())
-        total_tokens = self.get_total_tokens() + tokens
-        if total_tokens > self.max_tokens:
-            self.adjust_messages(total_tokens - self.max_tokens)
+        while self.current_tokens + tokens > self.max_tokens:
+            removed_msg = self.msg_list.pop(0)
+            self.current_tokens -= len(removed_msg.split())
         self.msg_list.append(new_msg)
+        self.current_tokens += tokens
+
 
     def adjust_messages(self, tokens_to_remove):
         while tokens_to_remove > 0:
