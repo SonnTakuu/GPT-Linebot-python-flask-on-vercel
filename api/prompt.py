@@ -21,7 +21,7 @@ class Prompt:
 
     def check_token_limit(self):
         total_tokens = sum(len(msg.split()) for msg in self.msg_list)
-        if total_tokens > os.environ.get("OPENAI_MAX_TOKENS", 240):
+        if total_tokens > int(os.environ.get("OPENAI_MAX_TOKENS", 240)):
             self.remove_msg()
 
     def remove_msg(self):
