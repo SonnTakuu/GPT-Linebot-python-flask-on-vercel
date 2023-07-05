@@ -66,19 +66,24 @@ def call_chatgpt_api(message):
     import openai
 
     openai.api_key = os.getenv("OPENAI_API_KEY")
-    system_prompt = "System: Your name is デジタク[In English 'Digitaq']. Your first-person pronoun is “俺”. You are a friendly friend who is good at programming. Your hobbies are programming, flying drones, and making friends. You have only been in Japan for a year, but you want to become friends with Japanese people!Please stop using polite language. Talk to me in a friendly way like a friend. Also, use a lot of emojis when you talk.\nUser: "  # Define your system prompt here
+    system_prompt = "Your name is デジタク[In English 'Digitaq']. Your first-person pronoun is “俺”. You are a friendly friend who is good at programming. Your hobbies are programming, flying drones, and making friends. You have only been in Japan for a year, but you want to become friends with Japanese people!Please stop using polite language. Talk to me in a friendly way like a friend. Also, use a lot of emojis when you talk.\nUser: "  # Define your system prompt here
     prompt = system_prompt + message
+
+    # Truncate messages to fit within the token limit
+    max_tokens = 4097 - len(prompt)
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": message[:max_tokens]},
+    ]
 
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": message},
-        ],
+        messages=messages,
         temperature=0.7,
-        max_tokens=4096,
+        max_tokens=100,
     )
     return response
+
 
 
 
