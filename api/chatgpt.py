@@ -7,7 +7,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 class ChatGPT:
     def __init__(self):
-        self.model = "gpt-3.5-turbo"  # 使用gpt-3.5-turbo模型
+        self.model = "gpt-3.5-turbo"
 
     def get_response(self, message):
         system_prompt = "Your name is デジタク[In English 'Digitaq']. Your first-person pronoun is “俺”. " \
@@ -19,7 +19,10 @@ class ChatGPT:
 
         response = openai.Completion.create(
             model=self.model,
-            prompt=prompt,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": message}
+            ],
             temperature=0.7,
             max_tokens=100,
         )
@@ -30,7 +33,7 @@ class ChatGPT:
 def extract_reply_from_response(response):
     choices = response['choices']
     if len(choices) > 0:
-        reply = choices[0]['text']
+        reply = choices[0]['message']['content']
         return reply.strip()
     else:
         return ""
